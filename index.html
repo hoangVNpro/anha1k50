@@ -41,32 +41,31 @@
         }
 
         #snow {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-}
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
 
-.snowflake {
-    position: absolute;
-    top: -20px;
-    animation-name: fall;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-}
+        .snowflake {
+            position: absolute;
+            top: -20px;
+            animation-name: fall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
 
-@keyframes fall {
-    0% {
-        transform: translateX(0) translateY(0);
-    }
-    100% {
-        transform: translateX(var(--drift)) translateY(110vh);
-    }
-}
-
+        @keyframes fall {
+            0% {
+                transform: translateX(0) translateY(0);
+            }
+            100% {
+                transform: translateX(var(--drift)) translateY(110vh);
+            }
+        }
 
         .content {
             position: relative;
@@ -266,6 +265,33 @@
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
                          0 0 40px rgba(167, 139, 250, 0.3);
         }
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
@@ -281,7 +307,13 @@
                     <h1 class="text-4xl md:text-5xl font-black text-white text-glow mb-3">
                         A1K50-PTT
                     </h1>
-                    <p class="text-gray-200 text-sm">hãy tải ảnh lên</p>
+                    <div class="flex items-center justify-center gap-3 flex-wrap">
+                        <p class="text-gray-200 text-sm">hãy tải ảnh lên</p>
+                        <span class="live-badge">
+                            <span class="live-dot"></span>
+                            <span>LIVE</span>
+                        </span>
+                    </div>
                 </div>
                 
                 <div class="space-y-6">
@@ -341,7 +373,6 @@
                 </div>
             </div>
 
-            <!-- Gallery -->
             <div class="card rounded-3xl p-8 md:p-10 border-2 border-white/30">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl md:text-4xl font-black text-white text-glow mb-3 flex items-center justify-center gap-3">
@@ -358,15 +389,14 @@
                 <div id="gallery" class="space-y-4">
                     <div class="text-center py-20">
                         <div class="floating text-6xl mb-4">🎭</div>
-                        <p class="text-xl text-white font-medium">Chưa có ảnh nào</p>
-                        <p class="text-sm text-gray-300 mt-2">Hãy tải ảnh đầu tiên lên nhé!</p>
+                        <p class="text-xl text-white font-medium">Đang tải ảnh...</p>
+                        <p class="text-sm text-gray-300 mt-2">Vui lòng đợi!</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Viewer -->
     <div id="modal" class="modal">
         <button id="closeModal" class="absolute top-6 right-6 bg-white/90 backdrop-blur-sm text-black p-4 rounded-2xl hover:bg-white transition-all shadow-2xl z-10 font-bold text-xl hover:rotate-90 duration-300 border-none cursor-pointer">
             ✕
@@ -388,13 +418,31 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, onValue, query, orderByChild } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEE83ZF7eaL4QH93DgC6a3fJ0AxNsvrfQ",
+            authDomain: "a1k50-ptt.firebaseapp.com",
+            databaseURL: "https://a1k50-ptt-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "a1k50-ptt",
+            storageBucket: "a1k50-ptt.firebasestorage.app",
+            messagingSenderId: "104989988146",
+            appId: "1:104989988146:web:4a89197e0aa37c1afd332b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const imagesRef = ref(database, 'images');
+
         const CLOUD_NAME = 'dbyap7mw2';
         const UPLOAD_PRESET = 'A1K50_PTT';
         
         let selectedFiles = [];
         let images = [];
         let currentViewIndex = 0;
+
         function createStars() {
             const starsContainer = document.getElementById('stars');
             const starCount = 200;
@@ -416,28 +464,29 @@
         }
 
         function createSnowflakes() {
-    const snowContainer = document.getElementById('snow');
-    const snowflakeCount = 80;
+            const snowContainer = document.getElementById('snow');
+            const snowflakeCount = 80;
 
-    for (let i = 0; i < snowflakeCount; i++) {
-        const snowflake = document.createElement('div');
-        snowflake.className = 'snowflake';
-        snowflake.textContent = '❄';
-        snowflake.style.left = Math.random() * 100 + '%';
-        const fallDuration = Math.random() * 4 + 4; // 4–8s
-        snowflake.style.animationDuration = fallDuration + 's';
-        snowflake.style.animationDelay = Math.random() * 4 + 's';
-        snowflake.style.fontSize = (Math.random() * 12 + 8) + 'px';
-        snowflake.style.opacity = (Math.random() * 0.5 + 0.5);
-        snowflake.style.setProperty('--drift', (Math.random() * 20 - 10) + 'px');
-        setTimeout(() => snowflake.remove(), (fallDuration + 5) * 1000);
-        snowContainer.appendChild(snowflake);
-    }
-}
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.textContent = '❄';
+                snowflake.style.left = Math.random() * 100 + '%';
+                const fallDuration = Math.random() * 4 + 4;
+                snowflake.style.animationDuration = fallDuration + 's';
+                snowflake.style.animationDelay = Math.random() * 4 + 's';
+                snowflake.style.fontSize = (Math.random() * 12 + 8) + 'px';
+                snowflake.style.opacity = (Math.random() * 0.5 + 0.5);
+                snowflake.style.setProperty('--drift', (Math.random() * 20 - 10) + 'px');
+                setTimeout(() => snowflake.remove(), (fallDuration + 5) * 1000);
+                snowContainer.appendChild(snowflake);
+            }
+        }
 
         createStars();
         createSnowflakes();
         loadImages();
+
         document.getElementById('fileInput').addEventListener('change', (e) => {
             handleFiles(Array.from(e.target.files));
         });
@@ -510,7 +559,7 @@
                     div.className = 'preview-item';
                     div.innerHTML = `
                         <img src="${e.target.result}" alt="Preview ${index + 1}">
-                        <button onclick="removeFile(${index})">✕</button>
+                        <button onclick="window.removeFile(${index})">✕</button>
                     `;
                     grid.appendChild(div);
                 };
@@ -561,15 +610,11 @@
                     const data = await response.json();
                     
                     if (data.secure_url) {
-                        const newImage = {
-                            id: `${data.public_id}_${Date.now()}_${i}`,
+                        await push(imagesRef, {
                             url: data.secure_url,
                             name: name,
-                            timestamp: Date.now() + i
-                        };
-
-                        localStorage.setItem(`img:${newImage.id}`, JSON.stringify(newImage));
-                        images.unshift(newImage);
+                            timestamp: Date.now()
+                        });
                         uploadedCount++;
                     }
 
@@ -586,21 +631,24 @@
             progress.classList.add('hidden');
             btn.disabled = false;
             
-            alert(`Đã tải ảnh thành công!`);
-            renderGallery();
+            alert(`Đã tải ${uploadedCount} ảnh thành công!`);
         }
 
         function loadImages() {
-            images = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('img:')) {
-                    const img = JSON.parse(localStorage.getItem(key));
-                    images.push(img);
-                }
-            }
-            images.sort((a, b) => b.timestamp - a.timestamp);
-            renderGallery();
+            const imagesQuery = query(imagesRef, orderByChild('timestamp'));
+            
+            onValue(imagesQuery, (snapshot) => {
+                images = [];
+                snapshot.forEach((childSnapshot) => {
+                    const img = childSnapshot.val();
+                    images.push({
+                        id: childSnapshot.key,
+                        ...img
+                    });
+                });
+                images.reverse();
+                renderGallery();
+            });
         }
 
         function renderGallery() {
@@ -612,16 +660,16 @@
             if (images.length === 0) {
                 gallery.innerHTML = `
                     <div class="text-center py-20">
-                        <div class="floating text-6xl mb-4"></div>
+                        <div class="floating text-6xl mb-4">🎭</div>
                         <p class="text-xl text-white font-medium">Chưa có ảnh nào</p>
-                        <p class="text-sm text-gray-300 mt-2">Hãy tải ảnh ...</p>
+                        <p class="text-sm text-gray-300 mt-2">Hãy tải ảnh đầu tiên lên nhé!</p>
                     </div>
                 `;
                 return;
             }
 
             gallery.innerHTML = images.map((img, index) => `
-                <div onclick="openModal(${index})" class="gallery-item bg-white/10 backdrop-blur-sm rounded-2xl p-5 shadow-lg hover:shadow-2xl transition-all border-2 border-white/20 hover:border-white/40">
+                <div onclick="window.openModal(${index})" class="gallery-item bg-white/10 backdrop-blur-sm rounded-2xl p-5 shadow-lg hover:shadow-2xl transition-all border-2 border-white/20 hover:border-white/40">
                     <div class="flex items-center gap-5">
                         <div class="relative group flex-shrink-0">
                             <img src="${img.url}" alt="${img.name}" class="w-24 h-24 object-cover rounded-xl border-3 border-white/50 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -666,11 +714,10 @@
             const minutes = Math.floor(seconds / 60);
             const hours = Math.floor(minutes / 60);
             const days = Math.floor(hours / 24);
-
             if (days > 0) return `${days} ngày trước`;
             if (hours > 0) return `${hours} giờ trước`;
             if (minutes > 0) return `${minutes} phút trước`;
-            return 'Vừa xong';
+            return `${seconds} giây trước`;
         }
     </script>
 </body>
