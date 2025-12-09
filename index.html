@@ -10,7 +10,7 @@
             margin:0;
             padding:0;
             box-sizing:border-box;
-            cursor: url("https://r2.zyo.lol/cursor_url_2c8437bbd547.cur") 16 16, auto !important;
+            cursor: url("https://files.catbox.moe/cwhx9o.ico") 16 16, auto !important;
         }
         body{
             background:#000;
@@ -59,6 +59,51 @@
             0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
         }
+        
+        /* Music Control Button Styles */
+        .music-control-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .music-control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .music-control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .music-control-btn.muted {
+            background: rgba(255, 100, 100, 0.2);
+            border-color: rgba(255, 100, 100, 0.3);
+        }
+        
+        .music-control-btn .icon {
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .music-control-btn.muted .icon {
+            opacity: 0.7;
+        }
+        
         .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
         .star{position:absolute;background:white;border-radius:50%;animation:twinkle linear infinite}
         @keyframes twinkle{0%,100%{opacity:0.3}50%{opacity:1}}
@@ -144,13 +189,27 @@
             .zoom-control{bottom:20px;padding:10px 20px;gap:12px}
             .zoom-slider{width:120px}
             .close-comments-btn{width:28px;height:28px;font-size:16px}
+            .music-control-btn {
+                top: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+            .music-control-btn .icon {
+                font-size: 20px;
+            }
         }
         #cursorCanvas{position:fixed;top:0;left:0;pointer-events:none;z-index:9998}
     </style>
 </head>
 <body>
+    <!-- Thêm nút điều khiển nhạc -->
+    <button id="musicControlBtn" class="music-control-btn" title="Tạm dừng/Nhạc">
+        <span class="icon">🎵</span>
+    </button>
+    
     <video id="videoBackground" class="video-background" muted loop playsinline preload="auto">
-        <source src="https://www.dropbox.com/scl/fi/9fhcf4k3fhspf8ske4kae/background_efe441534ad5-_1_.webm?rlkey=ouwaul701h057u5fbnnip7rq7&st=w5w5zu8n&raw=1" type="video/mp4">
+        <source src="https://res.cloudinary.com/dbyap7mw2/video/upload/v1765208146/background_efe441534ad5-_1__xr2aom.webm" type="video/mp4">
     </video>
     
     <div class="overlay_audio" id="overlay">
@@ -385,27 +444,73 @@
         let isCommentInputFocused = false;
         let experienceStarted = false;
         let cursorAnimationFrame = null;
+        let isMusicPlaying = true;
+        
+        // Music Control Functions
+        function setupMusicControl() {
+            const musicControlBtn = document.getElementById('musicControlBtn');
+            const music = document.getElementById('backgroundMusic');
+            
+            // Update button state based on current music state
+            function updateMusicButton() {
+                if (music.paused) {
+                    musicControlBtn.classList.add('muted');
+                    musicControlBtn.querySelector('.icon').textContent = 'TẮT';
+                    musicControlBtn.title = "Phát nhạc";
+                } else {
+                    musicControlBtn.classList.remove('muted');
+                    musicControlBtn.querySelector('.icon').textContent = 'BẬT';
+                    musicControlBtn.title = "Tạm dừng nhạc";
+                }
+            }
+            
+            // Toggle music play/pause
+            function toggleMusic() {
+                if (music.paused) {
+                    music.play().then(() => {
+                        isMusicPlaying = true;
+                        updateMusicButton();
+                    }).catch(err => {
+                        console.error('Music play error:', err);
+                    });
+                } else {
+                    music.pause();
+                    isMusicPlaying = false;
+                    updateMusicButton();
+                }
+            }
+            musicControlBtn.addEventListener('click', toggleMusic);
+            updateMusicButton();
+            music.addEventListener('ended', () => {
+                music.currentTime = 0;
+                music.play();
+            });
+        }
         
         function startExperience() {
-    if (experienceStarted) return;
-    experienceStarted = true;
-    
-    const overlay = document.getElementById('overlay');
-    const video = document.getElementById('videoBackground');
-    const music = document.getElementById('backgroundMusic');
-    
-    overlay.style.opacity = '0';
-    setTimeout(() => overlay.style.display = 'none', 300);
-    
-    video.play().then(() => {
-        setTimeout(() => video.classList.add('active'), 50);
-    }).catch(err => {
-        console.error('Video play error:', err);
-    });
-    
-    music.play().catch(err => {
-        console.error('Music play error:', err);
-    });
+            if (experienceStarted) return;
+            experienceStarted = true;
+            
+            const overlay = document.getElementById('overlay');
+            const video = document.getElementById('videoBackground');
+            const music = document.getElementById('backgroundMusic');
+            
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 300);
+            
+            video.play().then(() => {
+                setTimeout(() => video.classList.add('active'), 50);
+            }).catch(err => {
+                console.error('Video play error:', err);
+            });
+            music.play().then(() => {
+                isMusicPlaying = true;
+                setupMusicControl();
+            }).catch(err => {
+                console.error('Music play error:', err);
+                setupMusicControl();
+            });
+            
             video.addEventListener('ended', () => {
                 video.currentTime = 0;
                 video.play();
@@ -432,7 +537,7 @@
             let interval = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
             
             const cursorImg = new Image();
-            cursorImg.src = 'https://r2.zyo.lol/cursor_url_2c8437bbd547.cur';
+            cursorImg.src = 'https://files.catbox.moe/cwhx9o.ico';
 
             class Particle {
                 constructor(x, y) {
@@ -541,7 +646,7 @@
         commentInput.addEventListener('keypress', (e) => {
             e.stopPropagation();
         });
-
+        
         function setupZoomPan() {
             const imageContainer = document.getElementById('imageContainer');
             const imageWrapper = document.getElementById('imageWrapper');
