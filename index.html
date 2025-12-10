@@ -59,8 +59,6 @@
             0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
         }
-        
-        /* Music Control Button Styles */
         .music-control-btn {
             position: fixed;
             top: 20px;
@@ -200,10 +198,28 @@
             }
         }
         #cursorCanvas{position:fixed;top:0;left:0;pointer-events:none;z-index:9998}
+        .gallery-img {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .gallery-img.loaded {
+            opacity: 1;
+        }
+        
+        .gallery-img-placeholder {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
-    <!-- Thêm nút điều khiển nhạc -->
     <button id="musicControlBtn" class="music-control-btn" title="Tạm dừng/Nhạc">
         <span class="icon">BẬT</span>
     </button>
@@ -445,13 +461,11 @@
         let experienceStarted = false;
         let cursorAnimationFrame = null;
         let isMusicPlaying = true;
-        
-        // Music Control Functions
+        let imageObserver = null;
+        let loadedImages = new Set();
         function setupMusicControl() {
             const musicControlBtn = document.getElementById('musicControlBtn');
             const music = document.getElementById('backgroundMusic');
-            
-            // Update button state based on current music state
             function updateMusicButton() {
                 if (music.paused) {
                     musicControlBtn.classList.add('muted');
@@ -463,8 +477,6 @@
                     musicControlBtn.title = "Tạm dừng nhạc";
                 }
             }
-            
-            // Toggle music play/pause
             function toggleMusic() {
                 if (music.paused) {
                     music.play().then(() => {
@@ -518,6 +530,54 @@
             
             if (window.innerWidth > 768) {
                 initCursorEffect();
+            }
+            initLazyLoading();
+        }
+        function initLazyLoading() {
+            if ('IntersectionObserver' in window) {
+                imageObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            const dataSrc = img.getAttribute('data-src');
+                            
+                            if (dataSrc && !loadedImages.has(dataSrc)) {
+                                img.src = dataSrc;
+                                loadedImages.add(dataSrc);
+                                
+                                img.onload = () => {
+                                    img.classList.add('loaded');
+                                };
+                                
+                                img.onerror = () => {
+                                    console.error('Failed to load image:', dataSrc);
+                                };
+                            }
+                            
+                            imageObserver.unobserve(img);
+                        }
+                    });
+                }, {
+                    root: null,
+                    rootMargin: '50px 0px',
+                    threshold: 0.1
+                });
+            }
+        }
+        
+        function observeImage(imgElement) {
+            if (imageObserver) {
+                imageObserver.observe(imgElement);
+            } else {
+                const dataSrc = imgElement.getAttribute('data-src');
+                if (dataSrc && !loadedImages.has(dataSrc)) {
+                    imgElement.src = dataSrc;
+                    loadedImages.add(dataSrc);
+                    
+                    imgElement.onload = () => {
+                        imgElement.classList.add('loaded');
+                    };
+                }
             }
         }
         
@@ -1124,7 +1184,13 @@
                 <div onclick="window.openModal(${index})" class="gallery-item bg-white/10 backdrop-blur-sm rounded-2xl p-5 shadow-lg hover:shadow-2xl transition-all border-2 border-white/20 hover:border-white/40">
                     <div class="flex items-center gap-5">
                         <div class="relative group flex-shrink-0">
-                            <img src="${img.url}" alt="${img.name}" class="w-24 h-24 object-cover rounded-xl border-3 border-white/50 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <div class="w-24 h-24 rounded-xl border-3 border-white/50 shadow-lg gallery-img-placeholder"></div>
+                            <img 
+                                data-src="${img.url}" 
+                                alt="${img.name}" 
+                                class="gallery-img w-24 h-24 object-cover rounded-xl border-3 border-white/50 shadow-lg group-hover:scale-110 transition-transform duration-300 absolute top-0 left-0"
+                                loading="lazy"
+                            >
                             <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
                                 <span class="text-white text-xs font-bold">👁️ Xem</span>
                             </div>
@@ -1153,6 +1219,9 @@
                     </div>
                 </div>
             `).join('');
+            document.querySelectorAll('.gallery-img').forEach(img => {
+                observeImage(img);
+            });
         }
 
         window.openModal = function(index) {
