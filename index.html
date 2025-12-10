@@ -10,7 +10,6 @@
             margin:0;
             padding:0;
             box-sizing:border-box;
-            cursor: url("https://files.catbox.moe/cwhx9o.ico") 16 16, auto !important;
         }
         body{
             background:#000;
@@ -18,22 +17,35 @@
             overflow-x:hidden;
             position:relative;
         }
+        
+        /* Chỉ hiển thị video trên desktop */
         .video-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            filter: grayscale(100%) blur(2px) brightness(0.4);
-            transition: filter 1s ease;
-            opacity: 0;
+            display: none;
         }
-        .video-background.active {
-            filter: grayscale(100%) blur(0px) brightness(0.6);
-            opacity: 1;
+        
+        @media (min-width: 769px) {
+            .video-background {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                z-index: 0;
+                filter: grayscale(100%) blur(2px) brightness(0.4);
+                transition: filter 1s ease;
+                opacity: 0;
+            }
+            .video-background.active {
+                filter: grayscale(100%) blur(0px) brightness(0.6);
+                opacity: 1;
+            }
+            * {
+                cursor: url("https://files.catbox.moe/cwhx9o.ico") 16 16, auto !important;
+            }
         }
+        
         .overlay_audio {
             position: fixed;
             top: 0;
@@ -60,51 +72,47 @@
             50% { opacity: 1; }
         }
         .music-control-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: none;
         }
         
-        .music-control-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
+        @media (min-width: 769px) {
+            .music-control-btn {
+                display: flex;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 1000;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            }
+        }
+        .stars, #cursorCanvas, .heart-container {
+            display: none;
         }
         
-        .music-control-btn:active {
-            transform: scale(0.95);
+        @media (min-width: 769px) {
+            .stars, #cursorCanvas, .heart-container {
+                display: block;
+            }
+            .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+            .star{position:absolute;background:white;border-radius:50%;animation:twinkle linear infinite}
+            @keyframes twinkle{0%,100%{opacity:0.3}50%{opacity:1}}
+            .heart-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden}
+            .falling-heart{position:absolute;font-size:30px;animation:heartFall 1.5s ease-out forwards;pointer-events:none}
+            @keyframes heartFall{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(60vh) scale(0.5);opacity:0}}
+            #cursorCanvas{position:fixed;top:0;left:0;pointer-events:none;z-index:9998}
         }
         
-        .music-control-btn.muted {
-            background: rgba(255, 100, 100, 0.2);
-            border-color: rgba(255, 100, 100, 0.3);
-        }
-        
-        .music-control-btn .icon {
-            font-size: 24px;
-            transition: all 0.3s ease;
-        }
-        
-        .music-control-btn.muted .icon {
-            opacity: 0.7;
-        }
-        
-        .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
-        .star{position:absolute;background:white;border-radius:50%;animation:twinkle linear infinite}
-        @keyframes twinkle{0%,100%{opacity:0.3}50%{opacity:1}}
         .content{position:relative;z-index:10}
         .card{backdrop-filter:blur(10px);background:linear-gradient(135deg,rgba(255,255,255,0.1)0%,rgba(255,255,255,0.05)100%);border:2px solid rgba(255,255,255,0.2);box-shadow:0 8px 32px rgba(0,0,0,0.6);animation:fadeIn 0.6s ease-out}
         @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -130,9 +138,6 @@
         .live-badge{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#000;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:bold;animation:pulse 2s ease-in-out infinite}
         .live-dot{width:8px;height:8px;background:#000;border-radius:50%;animation:blink 1s ease-in-out infinite}
         @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-        .heart-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden}
-        .falling-heart{position:absolute;font-size:30px;animation:heartFall 1.5s ease-out forwards;pointer-events:none}
-        @keyframes heartFall{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(60vh) scale(0.5);opacity:0}}
         .like-btn{transition:transform 0.2s}
         .like-btn:active{transform:scale(1.2)}
         .image-container{position:relative;width:100%;height:75vh;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);border-radius:12px;overflow:hidden;cursor:grab;touch-action:none}
@@ -174,30 +179,122 @@
         .comments-count{background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
         .close-comments-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;transition:all 0.2s ease;flex-shrink:0}
         .close-comments-btn:hover{background:rgba(255,255,255,0.3)}
-        @media (max-width:1024px){
-            .modal-content-wrapper{flex-direction:column;max-height:90vh;overflow-y:auto}
-            .modal-comments-section{width:90vw;max-width:500px;max-height:60vh;top:auto;bottom:20px;right:50%;transform:translate(50%,150%);border-radius:20px}
-            .modal-comments-section.show{transform:translate(50%,0)}
-            .info-panel{bottom:80px;left:15px;max-width:55%;padding:12px}
-            .info-name{font-size:16px}
-            .info-time{font-size:12px}
-            .action-buttons{bottom:80px;right:15px;gap:12px}
-            .action-btn{width:50px;height:50px}
-            .action-btn span.icon{font-size:22px}
-            .zoom-control{bottom:20px;padding:10px 20px;gap:12px}
-            .zoom-slider{width:120px}
-            .close-comments-btn{width:28px;height:28px;font-size:16px}
-            .music-control-btn {
-                top: 15px;
-                right: 15px;
-                width: 45px;
-                height: 45px;
+        @media (max-width:768px){
+            /* Tối giản cho mobile */
+            .card {
+                backdrop-filter: none;
+                background: rgba(0, 0, 0, 0.7);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 20px;
+                margin-bottom: 16px;
             }
-            .music-control-btn .icon {
+            
+            .content {
+                padding: 12px;
+            }
+            
+            .image-container {
+                height: 60vh;
+            }
+            
+            .info-panel {
+                bottom: 70px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.8);
+            }
+            
+            .action-buttons {
+                bottom: 70px;
+                right: 10px;
+                gap: 12px;
+            }
+            
+            .action-btn {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .zoom-control {
+                bottom: 15px;
+                padding: 10px 15px;
+                gap: 10px;
+            }
+            
+            .zoom-slider {
+                width: 100px;
+            }
+            
+            .modal-comments-section {
+                width: 95vw;
+                max-height: 70vh;
+                bottom: 10px;
+                right: 50%;
+                transform: translate(50%, 150%);
+            }
+            
+            .modal-comments-section.show {
+                transform: translate(50%, 0);
+            }
+            
+            .gallery-item:hover {
+                transform: none;
+            }
+            
+            .preview-item:hover {
+                transform: none;
+            }
+            
+            .preview-item button {
+                opacity: 1;
+                width: 28px;
+                height: 28px;
+                font-size: 16px;
+            }
+            
+            /* Đơn giản hoá các nút */
+            #prevBtn, #nextBtn {
+                padding: 12px;
                 font-size: 20px;
+                background: rgba(255, 255, 255, 0.8);
+            }
+            
+            #closeModal {
+                padding: 12px;
+                font-size: 18px;
+                top: 10px;
+                right: 10px;
+            }
+            
+            .text-glow {
+                text-shadow: none;
+            }
+            
+            input, .upload-btn {
+                border-radius: 12px;
+            }
+            
+            .upload-btn {
+                padding: 16px;
+                font-size: 18px;
+            }
+            
+            .max-w-5xl {
+                max-width: 100%;
+            }
+            .preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 12px;
+                max-height: 400px;
+            }
+            
+            .preview-item {
+                height: 120px;
             }
         }
-        #cursorCanvas{position:fixed;top:0;left:0;pointer-events:none;z-index:9998}
+        
         .gallery-img {
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -233,7 +330,7 @@
     </div>
 
     <audio id="backgroundMusic" loop>
-        <source src="https://www.dropbox.com/scl/fi/d6s53q8yjgi5r5m19d8w7/bb6458e0-aba5-4daf-b045-af5090da4e96.mp3?rlkey=qbf75bb6fhx3i1qpi8qkh3dbs&st=0ctactai&raw=1" type="audio/mpeg">
+        <source src="https://res.cloudinary.com/dbyap7mw2/video/upload/v1765370768/bb6458e0-aba5-4daf-b045-af5090da4e96_yviniz.mp3" type="audio/mpeg">
     </audio>
 
     <canvas id="cursorCanvas"></canvas>
@@ -464,8 +561,12 @@
         let imageObserver = null;
         let loadedImages = new Set();
         function setupMusicControl() {
+            // Chỉ setup trên desktop
+            if (window.innerWidth <= 768) return;
+            
             const musicControlBtn = document.getElementById('musicControlBtn');
             const music = document.getElementById('backgroundMusic');
+            
             function updateMusicButton() {
                 if (music.paused) {
                     musicControlBtn.classList.add('muted');
@@ -477,6 +578,7 @@
                     musicControlBtn.title = "Tạm dừng nhạc";
                 }
             }
+            
             function toggleMusic() {
                 if (music.paused) {
                     music.play().then(() => {
@@ -491,6 +593,7 @@
                     updateMusicButton();
                 }
             }
+            
             musicControlBtn.addEventListener('click', toggleMusic);
             updateMusicButton();
             music.addEventListener('ended', () => {
@@ -509,31 +612,38 @@
             
             overlay.style.opacity = '0';
             setTimeout(() => overlay.style.display = 'none', 300);
-            
-            video.play().then(() => {
-                setTimeout(() => video.classList.add('active'), 50);
-            }).catch(err => {
-                console.error('Video play error:', err);
-            });
+            if (window.innerWidth > 768) {
+                video.play().then(() => {
+                    setTimeout(() => video.classList.add('active'), 50);
+                }).catch(err => {
+                    console.error('Video play error:', err);
+                });
+                
+                video.addEventListener('ended', () => {
+                    video.currentTime = 0;
+                    video.play();
+                });
+                initCursorEffect();
+                createStars();
+            } else {
+                video.style.display = 'none';
+            }
             music.play().then(() => {
                 isMusicPlaying = true;
-                setupMusicControl();
+                if (window.innerWidth > 768) {
+                    setupMusicControl();
+                }
             }).catch(err => {
                 console.error('Music play error:', err);
-                setupMusicControl();
+                if (window.innerWidth > 768) {
+                    setupMusicControl();
+                }
             });
             
-            video.addEventListener('ended', () => {
-                video.currentTime = 0;
-                video.play();
-            });
-            
-            if (window.innerWidth > 768) {
-                initCursorEffect();
-            }
             initLazyLoading();
         }
-        function initLazyLoading() {
+        
+       function initLazyLoading() {
             if ('IntersectionObserver' in window) {
                 imageObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -582,6 +692,8 @@
         }
         
         function initCursorEffect() {
+            if (window.innerWidth <= 768) return;
+            
             const canvas = document.getElementById('cursorCanvas');
             const ctx = canvas.getContext('2d', { alpha: true });
             
@@ -627,6 +739,8 @@
             }
 
             document.addEventListener('mousemove', (e) => {
+                if (window.innerWidth <= 768) return;
+                
                 if (lastTime + interval <= Date.now()) {
                     particles.push(new Particle(e.clientX, e.clientY));
                     lastTime = Date.now();
@@ -635,6 +749,8 @@
             });
 
             window.addEventListener('resize', () => {
+                if (window.innerWidth <= 768) return;
+                
                 width = window.innerWidth;
                 height = window.innerHeight;
                 canvas.width = width;
@@ -644,9 +760,9 @@
             animate();
         }
 
-        document.getElementById('overlay').addEventListener('click', startExperience);
-
         function createStars() {
+            if (window.innerWidth <= 768) return;
+            
             const starsContainer = document.getElementById('stars');
             const starCount = 100;
             
@@ -667,6 +783,9 @@
         }
 
         function createFallingHeart(x, y) {
+            // Chỉ tạo trái tim rơi trên desktop
+            if (window.innerWidth <= 768) return;
+            
             const heart = document.createElement('div');
             heart.className = 'falling-heart';
             heart.textContent = '❤️';
@@ -678,7 +797,11 @@
             setTimeout(() => heart.remove(), 1500);
         }
 
-        createStars();
+        // Chỉ tạo sao khi là desktop
+        if (window.innerWidth > 768) {
+            createStars();
+        }
+        
         loadImages();
 
         const commentInput = document.getElementById('commentInput');
@@ -742,7 +865,6 @@
                     updateZoomControls();
                 }
             });
-
             imageContainer.addEventListener('mousedown', (e) => {
                 if (scale <= 1) return;
                 
@@ -966,18 +1088,19 @@
             if (!currentImageId) return;
             
             e.stopPropagation();
-            
-            const rect = this.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top;
-            
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    createFallingHeart(
-                        x + (Math.random() - 0.5) * 40, 
-                        y + (Math.random() - 0.5) * 20
-                    );
-                }, i * 100);
+            if (window.innerWidth > 768) {
+                const rect = this.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top;
+                
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        createFallingHeart(
+                            x + (Math.random() - 0.5) * 40, 
+                            y + (Math.random() - 0.5) * 20
+                        );
+                    }, i * 100);
+                }
             }
             
             const img = images[currentViewIndex];
@@ -1292,6 +1415,8 @@
             if (minutes > 0) return `${minutes} phút trước`;
             return 'Vừa xong';
         }
+
+        document.getElementById('overlay').addEventListener('click', startExperience);
     </script>
 </body>
 </html>
